@@ -178,7 +178,7 @@ st.header("Internet Usage in Percent of the Population:")
 # Add plot showing the internet usage as the color of the country on the map
 #   with a selector putting the year, for which internet usage is displayed
 years = sorted(df['Year'].unique())
-year=st.selectbox("Choose a year", years,index=0) ### index says at what option to start
+year = st.selectbox("Choose a year", years,index=len(years)-1-2) ### index says at what option to start
 
 fig = go.Figure(
     go.Choroplethmapbox(
@@ -187,8 +187,17 @@ fig = go.Figure(
         z=df[df['Year'] == year][int_pop],
         featureidkey='properties.ISO_A3',
         colorscale="Viridis", zmin=0, zmax=100,
-        marker_opacity=0.5, marker_line_width=0
-                    )
+        marker_opacity=0.5, marker_line_width=0,
+        text=df[df['Year'] == year], name=str(year), 
+        hovertemplate="<b>%{text[0]}:</b><br>" +
+            "Internet usage: %{text[3]:,.0f} %<br>"
+            # # "GDP per Capita: %{x:$,.0f}<br>" +
+            # "Internet usage: %{y:,.0f}%<br>" +
+            # "GDP per Capita: $%{x}<br>" +
+            # "Life Expectation: %{text[1]}<br>" +
+            # "Population: %{text[2]}" +
+            # "<extra></extra>"
+            )
                 )
 fig.update_layout(mapbox_style="carto-positron",
                   mapbox_center = {"lat": 17.0902, "lon": 0}
@@ -231,12 +240,14 @@ left_column, right_column=st.columns(2)
 # placeholder1 = st.empty()
 # placeholder1 = st.empty()
 
-q_log = 0
+# q_log = 0
 # log_option = placeholder1.checkbox("Logarithic Axes Scaling")
 # if log_option:
 #     q_log = 1
-if left_column.checkbox("Logarithic Axes Scaling"):
+if left_column.checkbox("Logarithic Axes Scaling", value=True):
     q_log = 1
+else:
+    q_log = 0
 
 bin_sizes = sorted(range(2, 11, 2))
 binning =right_column.selectbox("Choose bin size for binning of life expectancy: ", bin_sizes,index=0)
@@ -252,6 +263,7 @@ continents = df_merged['continent'].unique()
 life_exp_bins = np.arange(40, 90, 2)
 colors = plt.cm.winter_r(range(256))
 colors = [mpl.colors.rgb2hex(c) for c in colors]
+colorscale = "gnbu"
 
 for k, year in enumerate(sorted(df_merged['year'].unique())):
 
@@ -264,7 +276,8 @@ for k, year in enumerate(sorted(df_merged['year'].unique())):
                 x = ds_aux['gdpPercap'], y = ds_aux[int_pop],
                 mode = "markers",
                 name = str(lf_exp), 
-                marker = {'color': colors[7*i], 'size': ds_aux['pop'].apply(lambda x: np.sqrt(x)), 'sizeref': 100, 'sizemode': 'area'},
+                marker = {'color': colors[7*i], 'size': ds_aux['pop'].apply(lambda x: np.sqrt(x)), 'sizeref': 100, 'sizemode': 'area', 'colorscale': colorscale, 'colorbar': dict(title = {'text': 'life expectancy', 'side':"right"}, tickmode="array", tickvals=[], len=.5, thickness=10), 'showscale': True
+                          },
                 #marker={"size": ds_aux['pop'], "sizeref": 2*max(ds['pop'])/5000, "sizemode": "area"},
                 text=ds_aux[['country', 'lifeExp', 'pop']],
                 hovertemplate="<b>%{text[0]}:</b><br><br>" +
@@ -302,6 +315,7 @@ fig4.update_layout(
     xaxis2={"title": {"text": "1997", "font": {"size": 16}}},
     xaxis3={"title": {"text": "2002", "font": {"size": 16}}},
     xaxis4={"title": {"text": "2007", "font": {"size": 16}}},
+    showlegend = False
 )
 
 
